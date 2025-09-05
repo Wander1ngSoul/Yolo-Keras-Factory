@@ -43,29 +43,10 @@ class DataLoader:
         return images, labels
 
     @staticmethod
-    def prepare_conservative_datasets(original_dataset_dir, new_dataset_dir):
-        print("Загрузка оригинального датасета...")
-        X_orig, y_orig = DataLoader.load_data_from_folder(original_dataset_dir)
-
-        print("Загрузка нового датасета...")
-        X_new, y_new = DataLoader.load_data_from_folder(new_dataset_dir)
-
-        X_orig_train, X_orig_test, y_orig_train, y_orig_test = train_test_split(
-            X_orig, y_orig, test_size=0.2, random_state=42, stratify=y_orig
+    def prepare_datasets(images, labels, test_size=0.2):
+        X_train, X_val, y_train, y_val = train_test_split(
+            images, labels, test_size=test_size, random_state=42, stratify=labels
         )
-
-        X_train = np.concatenate([X_orig_train, X_new], axis=0)
-        y_train = np.concatenate([y_orig_train, y_new], axis=0)
-
-        indices = np.arange(len(X_train))
-        np.random.shuffle(indices)
-        X_train = X_train[indices]
-        y_train = y_train[indices]
-
         y_train = to_categorical(y_train, num_classes=10)
-        y_orig_test = to_categorical(y_orig_test, num_classes=10)
-
-        print(f"Тренировочный набор: {len(X_train)} изображений")
-        print(f"Тестовый набор (оригинал): {len(X_orig_test)} изображений")
-
-        return X_train, y_train, X_orig_test, y_orig_test
+        y_val = to_categorical(y_val, num_classes=10)
+        return X_train, X_val, y_train, y_val
