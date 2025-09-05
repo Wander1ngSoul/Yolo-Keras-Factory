@@ -6,20 +6,17 @@ from tensorflow.keras.models import load_model
 from dotenv import load_dotenv
 import matplotlib.gridspec as gridspec
 
-# Используем общие настройки из проекта
 from Recognition.common.config import RecognitionConfig
 
 load_dotenv()
 
 
 def preprocess_original(image):
-    """Базовая предобработка - только resize"""
     image = cv2.resize(image, (32, 20))
     return image
 
 
 def test_single_image(image_path, model):
-    """Тестирование одного изображения"""
     original_gray = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     original_color = cv2.imread(image_path, cv2.IMREAD_COLOR)
 
@@ -27,15 +24,12 @@ def test_single_image(image_path, model):
         print(f"Ошибка загрузки изображения: {image_path}")
         return None
 
-    # Используем только один метод предобработки
     processed_img = preprocess_original(original_gray.copy())
 
-    # Подготовка данных для модели
     img_normalized = processed_img.astype("float32") / 255.0
     img_input = np.expand_dims(img_normalized, axis=-1)
     img_input = np.expand_dims(img_input, axis=0)
 
-    # Предсказание
     prediction = model.predict(img_input, verbose=0)[0]
     predicted_class = np.argmax(prediction)
     confidence = prediction[predicted_class] * 100
@@ -59,26 +53,21 @@ def test_single_image(image_path, model):
 
 
 def plot_results(results, original_color, image_name):
-    """Визуализация результатов"""
     fig = plt.figure(figsize=(12, 8))
     fig.suptitle(f'Распознавание цифры: {image_name}', fontsize=14, fontweight='bold')
 
-    # Создаем сетку 2x2
     gs = gridspec.GridSpec(2, 2, height_ratios=[1, 1], width_ratios=[1, 1], hspace=0.4, wspace=0.3)
 
-    # Оригинальное изображение
     ax_original = plt.subplot(gs[0, 0])
     ax_original.imshow(cv2.cvtColor(original_color, cv2.COLOR_BGR2RGB))
     ax_original.set_title('Оригинальное изображение', fontsize=12, pad=10)
     ax_original.axis('off')
 
-    # Обработанное изображение
     ax_processed = plt.subplot(gs[0, 1])
     ax_processed.imshow(results['processed_image'], cmap='gray')
     ax_processed.set_title('После обработки (32x20)', fontsize=12, pad=10)
     ax_processed.axis('off')
 
-    # График уверенности
     ax_confidence = plt.subplot(gs[1, 0])
     digits = range(10)
     probabilities = results['prediction'] * 100
@@ -92,14 +81,12 @@ def plot_results(results, original_color, image_name):
     ax_confidence.set_ylim(0, 110)
     ax_confidence.grid(True, alpha=0.3, axis='y')
 
-    # Добавляем значения на столбцы
     for i, bar in enumerate(bars):
         height = bar.get_height()
-        if height > 5:  # Показываем только значимые значения
+        if height > 5:
             ax_confidence.text(bar.get_x() + bar.get_width() / 2., height + 2,
                                f'{height:.1f}%', ha='center', va='bottom', fontsize=9)
 
-    # Топ-3 предсказания
     ax_top3 = plt.subplot(gs[1, 1])
     top3_digits = [x[0] for x in results['top3']]
     top3_probs = [x[1] for x in results['top3']]
