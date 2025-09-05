@@ -2,7 +2,7 @@ import numpy as np
 import json
 import cv2
 from sklearn.metrics import classification_report, confusion_matrix
-from tensorflow.keras.models import load_model
+import os
 
 
 class Evaluator:
